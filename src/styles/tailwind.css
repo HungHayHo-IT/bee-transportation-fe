@@ -1,0 +1,11 @@
+@import 'tailwindcss';
+
+/* MUI owns component styling. Tailwind is here for layout utilities only, so its
+   preflight is disabled to keep it from fighting CssBaseline. */
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+}

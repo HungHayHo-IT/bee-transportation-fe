@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BeeOps — Biên bản QA từ Front-end</title>
+<style>
+  :root{
+    --paper:#F8F9FA; --card:#FFFFFF; --ink:#41454F; --muted:#8D8D8D; --line:#E7E8EA;
+    --orange:#FF5A00; --orange-wash:#FFEDE3; --green:#00803C; --green-wash:#E4F1EA;
+    --red:#DC3545; --red-wash:#FBE9EA; --amber:#C77F06; --amber-wash:#FDF3E0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);
+       font:15px/1.65 "Be Vietnam Pro","Segoe UI",system-ui,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:-.01em}
+  h2{font-size:20px;margin:44px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  h3{font-size:16px;margin:26px 0 8px}
+  p{max-width:80ch}
+  .sub{color:var(--muted);margin:0 0 24px;max-width:80ch}
+  .meta{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:13.5px;color:var(--muted);
+        border:1px solid var(--line);background:var(--card);border-radius:9px;padding:12px 16px;margin-bottom:26px}
+  .meta b{color:var(--ink);font-weight:600}
+  table{border-collapse:collapse;width:100%;background:var(--card);
+        border:1px solid var(--line);border-radius:9px;overflow:hidden;margin:14px 0;font-size:14px}
+  th{text-align:left;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+     padding:11px 14px;border-bottom:2px solid var(--line);white-space:nowrap;background:var(--paper)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  code,pre{font-family:ui-monospace,Menlo,Consolas,monospace}
+  code{background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:13px}
+  pre{background:#1E232B;color:#E8EAED;padding:14px 16px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.55}
+  pre code{background:none;border:none;color:inherit;padding:0}
+  .tag{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.04em;
+       padding:2px 9px;border-radius:999px;white-space:nowrap}
+  .t-block{background:var(--red-wash);color:var(--red)}
+  .t-high{background:var(--amber-wash);color:var(--amber)}
+  .t-med{background:var(--orange-wash);color:var(--orange)}
+  .t-low{background:var(--paper);color:var(--muted);border:1px solid var(--line)}
+  .t-ok{background:var(--green-wash);color:var(--green)}
+  .issue{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);
+         border-radius:0 9px 9px 0;padding:16px 20px;margin:14px 0}
+  .issue.block{border-left-color:var(--red)}
+  .issue.high{border-left-color:var(--amber)}
+  .issue.med{border-left-color:var(--orange)}
+  .issue.low{border-left-color:var(--muted)}
+  .issue h3{margin-top:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .issue h3 .id{font-family:ui-monospace,monospace;color:var(--muted);font-size:14px}
+  .field{margin:9px 0}
+  .field b{display:inline-block;min-width:104px;color:var(--muted);font-weight:600;font-size:13px;
+           text-transform:uppercase;letter-spacing:.04em;vertical-align:top}
+  .field span{display:inline-block;max-width:calc(100% - 118px)}
+  .note{background:var(--orange-wash);border-left:4px solid var(--orange);padding:12px 16px;
+        border-radius:0 6px 6px 0;margin:18px 0;font-size:14.5px}
+  footer{margin-top:50px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>BeeOps — Biên bản QA từ Front-end</h1>
+<p class="sub">Các vấn đề phía back-end phát hiện trong quá trình dựng admin front-end và ghép API thật.
+Mỗi mục đều kèm bằng chứng tái hiện được. <b>Toàn bộ 25 phát hiện đã được back-end xử lý</b>
+(nhánh <code>fix/qa-report-2026-08</code>, merge <code>bd74ef9</code>, ngày 23/08/2026) và
+front-end đã chạy lại từng mục trên bản mới. Tài liệu giữ nguyên phần mô tả gốc để đối chiếu.</p>
+
+<div class="meta">
+  <span><b>Môi trường</b> http://localhost:8087 · bản triển khai http://167.254.68.111 (spec: <code>/api/docs-json</code>)</span>
+  <span><b>Front-end</b> http://localhost:5173, proxy <code>/api</code></span>
+  <span><b>Cập nhật</b> 23/08/2026</span>
+  <span><b>Trạng thái</b> 25/25 mục cũ đã xử lý và verify lại · <b>QA-26 đã xử lý</b> (migration đã chạy trên máy chủ, re-verify 25/08) · QA-27 → QA-30 đã xử lý xong · <b>QA-31, QA-32 phát hiện 25/08/2026 khi chạy 14 tester theo spec — back-end đã vá (PR #8) và re-verify sống 25/08</b></span>
+  <span><b>Phạm vi đã QA</b> Toàn bộ: Auth · F1 → F8</span>
+</div>
+
+<div class="note">
+  <b>Đã đóng 25 mục cũ.</b> Back-end xử lý cả 25 trong một đợt. Hai việc bắt buộc khi triển khai:
+  chạy <code>db/migrations/001-qa-fixes.sql</code> <b>trước</b> khi deploy mã mới, và lưu ý
+  chín thay đổi phá vỡ hợp đồng ở mục 1b — front-end đã sửa theo, client khác thì chưa.
+  <br><br>
+  <b>Máy chủ 167.254.68.111 đang thiếu đúng bước migration đó</b> — xem QA-26. Mã nguồn không
+  có lỗi; cơ sở dữ liệu của máy chủ mới là chỗ chưa được nâng cấp.
+</div>
+
+<h2>1. Tổng hợp</h2>
+<table>
+  <tr><th>Mức</th><th>Số lượng</th><th>Nội dung</th><th>Trạng thái</th></tr>
+  <tr><td><span class="tag t-block">Chặn</span></td><td>1</td><td>QA-26 — máy chủ triển khai chạy mã mới trên DB chưa migrate, mọi màn hình đơn hàng trả 500</td><td><span class="tag t-ok">Đã xử lý</span></td></tr>
+  <tr><td><span class="tag t-high">Cao</span></td><td>2</td><td>QA-31, QA-32 — đơn terminal nhận báo giá; lý do bỏ qua rỗng (phát hiện khi chạy 14 tester)</td><td><span class="tag t-ok">Đã vá (PR #8), đã deploy</span></td></tr>
+  <tr><td><span class="tag t-block">Chặn</span></td><td>1</td><td>QA-01 — trưởng phòng không gán được đơn</td><td><span class="tag t-ok">Đã xử lý</span></td></tr>
+  <tr><td><span class="tag t-high">Cao</span></td><td>5</td><td>QA-02, QA-03, QA-04, QA-14, QA-21 — dữ liệu sai chuẩn, tài liệu lệch, hai endpoint trả khác nhau, nhãn kỳ doanh thu lệch một ngày</td><td><span class="tag t-ok">Đã xử lý</span></td></tr>
+  <tr><td><span class="tag t-med">Trung bình</span></td><td>10</td><td>QA-05 → QA-09, QA-15 → QA-17, QA-19, QA-23 — hợp đồng API không nhất quán, thiếu lịch sử báo giá, một cột gánh ba nghiệp vụ, hộp thư không phân trang</td><td><span class="tag t-ok">Đã xử lý</span></td></tr>
+  <tr><td><span class="tag t-med">Trung bình</span></td><td>4</td><td>QA-27, QA-28, QA-29 — bộ lọc nhật ký bị ValidationPipe chặn dù Swagger khai đủ; <code>FRONTEND_ORIGIN</code> nhận danh sách ở một nửa mã nguồn; <code>sortBy</code> tùy ý trả 500</td><td><span class="tag t-ok">Đã vá, chờ deploy</span></td></tr>
+  <tr><td><span class="tag t-med">Trung bình</span></td><td>1</td><td>QA-30 — <code>sortBy</code>/<code>sortOrder</code> khai ở mọi danh sách nhưng chỉ <code>/orders</code> dùng</td><td><span class="tag t-ok">Đã xử lý</span></td></tr>
+  <tr><td><span class="tag t-low">Thấp</span></td><td>9</td><td>QA-10 → QA-13, QA-18, QA-20, QA-22, QA-24, QA-25 — schema, cấu hình, câu chữ thông báo lỗi, phạm vi lát cắt, kiểu dữ liệu Swagger, trùng hồ sơ khách</td><td><span class="tag t-ok">Đã xử lý</span></td></tr>
+  <tr><td><span class="tag t-ok">Đã verify đúng</span></td><td>25</td><td>Xem mục 6</td><td>—</td></tr>
+</table>
+
+<h2>1b. Back-end đã xử lý những gì (23/08/2026)</h2>
+<p>Cột bên phải là cách front-end kiểm tra lại trên bản mới, không phải lời hứa của back-end.</p>
+<table>
+  <tr><th>#</th><th>Back-end sửa gì</th><th>Front-end verify lại thế nào</th></tr>
+  <tr><td><code>QA-01</code></td><td>Cho <code>leader</code>/<code>manager</code> gọi <code>GET /users</code>, phạm vi dòng ép theo phòng của người gọi</td><td>Trưởng phòng A mở hàng đợi, gán <code>DOM-20260823-001</code> cho QA NV A; danh sách chỉ có 2 người của phòng A, hỏi <code>?departmentId=4</code> trả rỗng</td></tr>
+  <tr><td><code>QA-02</code></td><td>Danh mục 34 tỉnh/thành + quy đổi cách viết; <code>GET /reference/provinces</code></td><td>Tạo đơn với <code>HN</code> / <code>hai phong</code> → lưu thành Hà Nội / Hải Phòng; <code>Xứ Mộng Mơ</code> trả 400 kèm tên danh mục. Ô chọn tỉnh nay lấy từ endpoint</td></tr>
+  <tr><td><code>QA-03</code></td><td>Cập nhật tài liệu theo spec sống</td><td>Đối chiếu lại 79 path của <code>/api/docs-json</code></td></tr>
+  <tr><td><code>QA-04</code></td><td>README đồng bộ với seed; ghi rõ cách đặt lại trên môi trường đã dùng</td><td>Đăng nhập bản triển khai bằng <code>admin@beetransportation.vn</code> / <code>BeeOps@2026</code> → 201, còn cờ đổi mật khẩu lần đầu</td></tr>
+  <tr><td><code>QA-05</code></td><td>Mọi danh sách trả <code>{items,total,page,limit}</code></td><td>7 endpoint đổi vỏ; front-end dùng chung <code>Page&lt;T&gt;</code> + <code>adaptPage</code>, chạy lại toàn bộ màn danh sách</td></tr>
+  <tr><td><code>QA-06</code></td><td><code>/activity</code> và timeline đổi <code>at</code> → <code>createdAt</code></td><td>Dòng thời gian đơn 40 và nhật ký hệ thống hiển thị đúng thời điểm</td></tr>
+  <tr><td><code>QA-07</code></td><td>Khai đủ tham số phân trang; <code>/dashboard/drill</code> nhận <code>limit</code></td><td><code>/orders?page=2&amp;limit=3</code> trả đúng trang 2; drill nhận <code>limit</code> và panel báo rõ khi chạm trần</td></tr>
+  <tr><td><code>QA-08</code></td><td>Khai <code>requestBody</code> multipart cho upload</td><td>Tải file lên đơn 40, metadata trả về đủ trường mới</td></tr>
+  <tr><td><code>QA-09</code></td><td><code>POST /orders</code> nhận nhánh <code>newCustomer</code>, tạo khách + đơn trong một giao dịch</td><td>Tạo <code>DOM-20260823-005</code> với khách gõ tay: chỉ một request <code>POST /orders</code>, không còn <code>POST /customers</code> rời</td></tr>
+  <tr><td><code>QA-10</code></td><td><code>order_code()</code> thêm nhánh <code>CASE</code> cho số thứ tự ≥ 1000</td><td>Có trong migration 001 (đọc mã, không dựng được 1000 đơn/ngày để thử)</td></tr>
+  <tr><td><code>QA-11</code></td><td>Trigger <code>BEFORE UPDATE</code> cho <code>updated_at</code>, và phơi ra DTO</td><td>Đơn 6 bị hủy hôm nay có <code>updatedAt</code> 23/08, khác <code>createdAt</code> 22/08</td></tr>
+  <tr><td><code>QA-12</code></td><td>Index <code>order_departments(assignee_id)</code></td><td>Có trong migration 001</td></tr>
+  <tr><td><code>QA-13</code></td><td><code>FRONTEND_ORIGIN</code> nhận danh sách origin</td><td>Đọc mã cấu hình; front-end vẫn đi qua proxy nên không phụ thuộc</td></tr>
+  <tr><td><code>QA-14</code></td><td>Join người thực hiện vào query chi tiết đơn</td><td>Đơn 40: <code>doneByName</code> giống nhau ở cả hai endpoint. Tab tiến độ bỏ hẳn request phụ</td></tr>
+  <tr><td><code>QA-15</code></td><td>Khai response schema cho Kanban và export</td><td>Kanban vẫn trả object gom theo trạng thái, đã có mô tả và ghi rõ trần 50 đơn/cột</td></tr>
+  <tr><td><code>QA-16</code></td><td>Thêm <code>GET /orders/:id/departments/:deptId/quote-history</code></td><td>Đơn 44: gửi 26.5M rồi 24.9M → lịch sử trả v1 = 26.500.000 kèm người gửi và thời điểm; phòng A hỏi lịch sử phòng B nhận 403</td></tr>
+  <tr><td><code>QA-17</code></td><td>Vắng khóa = giữ nguyên; chỉ <code>null</code> tường minh mới xóa</td><td>Gửi lại chỉ với <code>amount</code>: <code>scopeNote</code>, <code>leadTime</code>, <code>validUntil</code> còn nguyên</td></tr>
+  <tr><td><code>QA-18</code></td><td>Sửa câu 409 khi chọn lại phòng thắng</td><td>Nay trả “Đơn đã chọn phòng phụ trách. Muốn đổi phòng, hãy gửi yêu cầu điều chỉnh giá để mở lại vòng chọn.”</td></tr>
+  <tr><td><code>QA-19</code></td><td>Tách <code>close_note</code> / <code>reject_note</code> / <code>cancel_reason</code></td><td>Đơn 6 (đã hủy) hiển thị “Lý do hủy đơn: nhập trùng”, không còn nằm dưới nhãn ghi chú chốt đơn</td></tr>
+  <tr><td><code>QA-20</code></td><td>Ghi <code>Number(finalAmount)</code> vào nhật ký</td><td>Bản ghi <code>close</code> mới của đơn 44: <code>finalAmount: 24900000</code> (số). Bản ghi cũ vẫn là chuỗi — dữ liệu lịch sử</td></tr>
+  <tr><td><code>QA-21</code></td><td>Định dạng mốc kỳ bằng <code>to_char</code> trong SQL</td><td><code>groupBy=month</code> trả <code>2026-08-01</code>; biểu đồ hiện nhãn 08/2026. Phần cộng bù ở front-end đã xóa</td></tr>
+  <tr><td><code>QA-22</code></td><td>Chặn <code>dimension=department|sale</code> dưới cấp công ty</td><td>Sale gọi trả 403 “Chiều "department" chỉ dành cho người xem báo cáo toàn công ty”; <code>dimension=service</code> vẫn chạy</td></tr>
+  <tr><td><code>QA-23</code></td><td><code>/notifications</code> nhận <code>page</code>/<code>limit</code></td><td>Hộp thư phân trang thật (20 dòng/trang), chuông xin đúng <code>limit=10</code> thay vì tự cắt</td></tr>
+  <tr><td><code>QA-24</code></td><td>Khai kiểu tường minh cho 70 thuộc tính nullable, enum cho <code>NotificationDto.type</code></td><td><code>NotifType</code> trong spec liệt kê đủ 14 giá trị</td></tr>
+  <tr><td><code>QA-25</code></td><td>Trùng tên khách trả 409 kèm <code>error.details.existingCustomerId</code></td><td>Tạo lại “Công ty Kiểm Thử Regression” từ giao diện → mở thẳng hồ sơ id 4 thay vì đẻ hồ sơ thứ hai. Phần tự tra tên ở front-end đã xóa</td></tr>
+</table>
+
+<h3>Thay đổi phá vỡ hợp đồng — client khác phải sửa theo</h3>
+<table>
+  <tr><th>Trước</th><th>Sau</th></tr>
+  <tr><td>6 endpoint danh sách trả mảng trần</td><td>Tất cả trả <code>{ items, total, page, limit }</code></td></tr>
+  <tr><td><code>/activity</code>, <code>/orders/:id/timeline</code> có trường <code>at</code></td><td><code>createdAt</code></td></tr>
+  <tr><td>File đính kèm trả <code>{ by, at, path }</code></td><td><code>{ uploadedById, uploadedByName, createdAt, milestoneId }</code>, bỏ <code>path</code></td></tr>
+  <tr><td>Ghi chú từ chối / hủy nằm trong <code>closeNote</code></td><td><code>rejectNote</code> và <code>cancelReason</code> riêng; thêm <code>updatedAt</code></td></tr>
+  <tr><td>Gửi lại báo giá thiếu trường = xóa trắng</td><td>Vắng khóa = giữ nguyên</td></tr>
+  <tr><td><code>POST /customers</code> trùng tên = tạo hồ sơ mới</td><td>409 kèm <code>error.details.existingCustomerId</code></td></tr>
+  <tr><td><code>originProvince</code> nhận mọi chuỗi</td><td>Quy về danh mục; sai hẳn trả 400</td></tr>
+  <tr><td><code>dashboard/revenue.period</code> lùi một ngày</td><td>Đúng ngày đầu kỳ theo giờ Việt Nam</td></tr>
+  <tr><td><code>revenue/by?dimension=department|sale</code> mở cho mọi vai trò</td><td>Chỉ cấp công ty</td></tr>
+</table>
+
+<h2>2. Chặn triển khai</h2>
+
+<div class="issue block">
+  <h3><span class="id">QA-26</span> <span class="tag t-block">Chặn</span> Máy chủ triển khai chạy mã mới trên cơ sở dữ liệu chưa migrate — mọi màn hình đơn hàng hỏng</h3>
+  <div class="field"><b>Môi trường</b><span>http://167.254.68.111 (bản triển khai). Không tái hiện trên máy local đã chạy migration.</span></div>
+  <div class="field"><b>Hiện tại</b><span>Mọi endpoint <b>đọc dòng đơn hàng</b> trả <code>500 Lỗi hệ thống</code>: <code>GET /orders</code>, <code>/orders/kanban</code>, <code>/orders/unrouted</code>, <code>/orders/:id</code>, <code>/orders/export</code>, <code>/dashboard/drill</code>. Các endpoint chỉ đếm (<code>/dashboard/funnel</code>, <code>/win-rate</code>, <code>/summary</code>) và mọi endpoint không đụng bảng <code>orders</code> (<code>/services</code>, <code>/users</code>, <code>/customers</code>, <code>/activity</code>, <code>/notifications</code>, <code>/reference/*</code>) đều trả 200.</span></div>
+  <div class="field"><b>Nguyên nhân</b><span>Đúng hình dạng của việc thiếu <code>db/migrations/001-qa-fixes.sql</code>: model Prisma <code>Order</code> khai <code>rejectNote → reject_note</code> và <code>cancelReason → cancel_reason</code> (dòng 122–123 <code>prisma/schema.prisma</code>), hai cột chỉ được thêm bởi migration đó. Prisma <code>SELECT</code> đủ mọi cột vô hướng nên truy vấn nào trả về dòng đơn hàng cũng chết (P2022), còn <code>count</code>/<code>groupBy</code> thì không đụng tới hai cột này — khớp chính xác với những gì quan sát được. Log của máy chủ sẽ xác nhận mã lỗi.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Trên bản triển khai, F1–F6 không dùng được: không xem được danh sách đơn, Kanban, chi tiết đơn, xuất Excel hay drill-down. Cơ sở dữ liệu đang trống nên chưa mất dữ liệu, nhưng nếu deploy lên môi trường đã có đơn thì hỏng ngay lập tức.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -c vm.txt -X POST http://167.254.68.111/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@beetransportation.vn","password":"&lt;mật khẩu admin&gt;"}'
+
+curl -s -b vm.txt "http://167.254.68.111/api/orders?limit=5"
+# {"success":false,"error":{"code":"Internal Server Error","message":"Lỗi hệ thống","statusCode":500}}
+
+curl -s -b vm.txt "http://167.254.68.111/api/dashboard/funnel"   # 200 — chỉ đếm, không đọc cột
+curl -s -b vm.txt "http://167.254.68.111/api/services"           # 200 — không đụng bảng orders</code></pre>
+  <div class="field"><b>Kiểm tra lại 23/08/2026</b><span>Back-end báo đã chạy migration, nhưng <b>kiểm tra lại vẫn hỏng y nguyên</b>. Ghi nhận thêm: <code>POST /orders</code> cũng trả <code>500</code> và <b>không ghi được gì</b> (<code>customers.total</code> vẫn bằng 0 sau khi gọi), nghĩa là cả đọc lẫn ghi bảng <code>orders</code> đều chết chứ không riêng đường đọc. Cùng bản mã đó chạy trên cơ sở dữ liệu local đã migrate trả <code>200</code> với 45 đơn — khác biệt nằm ở cơ sở dữ liệu, không phải mã nguồn. Nhiều khả năng migration đã chạy vào một container/DB khác với DB mà API đang dùng; xin xác nhận bằng hai lệnh dưới đây trên chính máy chủ.</span></div>
+<pre><code>docker compose -f docker-compose.vm.yml exec -T db \
+  psql -U beeops -d beeops -c "\\d orders" | grep -E 'reject_note|cancel_reason'
+# phải in ra cả hai cột; không in gì nghĩa là DB này chưa migrate
+
+docker compose -f docker-compose.vm.yml logs api --tail=50 | grep -i -m1 'P2022\|column'
+# xác nhận mã lỗi Prisma và tên cột thiếu</code></pre>
+  <div class="field"><b>Cách sửa</b><span>Chạy migration trên máy chủ rồi khởi động lại API — chính lệnh đã ghi trong đầu file migration:</span></div>
+<pre><code>docker compose -f docker-compose.vm.yml exec -T db \
+  psql -U beeops -d beeops -v ON_ERROR_STOP=1 &lt; db/migrations/001-qa-fixes.sql</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Đưa bước migration vào <code>deploy/ci-deploy.sh</code> ngay trước khi build, để CD không thể deploy mã mới lên cơ sở dữ liệu cũ. Health check hiện chỉ kiểm tra kết nối DB nên vẫn báo xanh — nên thêm một truy vấn chạm bảng <code>orders</code> vào <code>/health</code>, hoặc so khớp phiên bản schema, thì lần sau CD tự quay lui thay vì để lỗi lọt ra người dùng.</span></div>
+  <div class="field"><b>Front-end</b><span>Không cần sửa gì: ba màn hình đơn hàng hiển thị đúng thông báo lỗi của back-end trong một <code>Alert</code> đóng được, các màn khác vẫn chạy bình thường.</span></div>
+  <div class="field"><b>Đã xử lý 25/08/2026</b><span>Migration đã chạy trên máy chủ triển khai. Re-verify: <code>GET /orders?limit=2</code> trên <code>167.254.68.111</code> trả <code>200</code> với <code>total: 25</code>, và Kanban tải hơn 40 dòng đơn qua proxy. Mọi endpoint đọc dòng đơn hàng hết 500.</span></div>
+</div>
+
+<h3>Các mục chặn đã xử lý xong</h3>
+
+<div class="issue block">
+  <h3><span class="id">QA-01</span> <span class="tag t-block">Chặn</span> Trưởng phòng không lấy được danh sách nhân viên phòng mình</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/departments/:deptId/assign</code> · <code>GET /users</code></span></div>
+  <div class="field"><b>Hiện tại</b><span><code>assign</code> yêu cầu <code>assigneeId</code>, nhưng <code>GET /users</code> là admin-only. Trưởng phòng gọi vào nhận <code>403 Forbidden resource</code>. Không endpoint nào khác trả danh sách nhân viên của một phòng.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Front-end không dựng được dropdown chọn người, nên nút "Gán" trên màn hàng đợi đang phải để vô hiệu. Nghiệp vụ F2 "trưởng phòng gán đơn cho nhân viên" hiện không dùng được.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -c mgr.txt -X POST localhost:8087/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"qa.ma@bee.vn","password":"BeeOps@2026!x"}'
+curl -s -b mgr.txt localhost:8087/api/users
+# {"success":false,"error":{"code":"Forbidden","message":"Forbidden resource","statusCode":403}}</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Cho <code>GET /users</code> chấp nhận thêm vai trò <code>manager</code> khi có tham số <code>departmentId</code> và <code>departmentId</code> đúng bằng phòng của người gọi (sai thì 403). Hoặc thêm <code>GET /departments/:id/members</code> với cùng ràng buộc.</span></div>
+</div>
+
+<h2>3. Mức cao</h2>
+
+<div class="issue high">
+  <h3><span class="id">QA-31</span> <span class="tag t-high">Cao</span> Đơn đã hủy vẫn nhận được báo giá</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/departments/:deptId/quote</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Máy trạng thái chặn đúng close/reject/select trên đơn terminal (trả 409 kèm tên hai trạng thái), nhưng endpoint báo giá không kiểm tra: báo giá vào một đơn <b>đã hủy</b> trả <code>201</code> và ghi thật <code>quoteVersion: 1, amount: 1000000</code> vào dòng phòng ban.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code># qa.sale1 tạo đơn DOM rồi hủy; qa.ma báo giá vào đơn đã hủy (đơn 21 trên host triển khai, 25/08)
+curl -s -b sale.jar -X POST $B/orders/21/cancel -d '{"reason":"QA25 verify cancel"}'   # 201, status=cancelled
+curl -s -b ma.jar   -X POST $B/orders/21/departments/1/quote -d '{"amount":1000000}'
+# {"success":true,"data":{"ok":true}}  &lt;- 201, và GET /orders/21 thấy quoteVersion=1, amount=1000000</code></pre>
+  <div class="field"><b>Hệ quả</b><span>Phòng ban có thể tốn công báo giá một đơn đã chết qua API, và dữ liệu của đơn terminal bị ghi thêm. Front-end đã ẩn form báo giá theo trạng thái nên người dùng UI không dính, nhưng bất biến "terminal là terminal" phải được tầng API giữ.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Thêm kiểm tra trạng thái vào endpoint quote (từ chối khi đơn ở <code>closed / in_progress / completed / rejected / cancelled</code> và cả sau vòng chọn, như thông báo "Đơn đã qua vòng chọn báo giá" đang làm cho nhánh selection) — cùng bảng ALLOWED với các endpoint chuyển trạng thái khác.</span></div>
+  <div class="field"><b>Đã xử lý + re-verify sống 25/08/2026</b><span>Back-end vá trong commit <code>d7e1898</code> (PR #8, đã merge <code>main</code> và triển khai). Re-verify trên <code>167.254.68.111</code>: <code>qa.ma</code> báo giá vào đơn 25 (đã hủy) nay trả <code>409</code> "Đơn đang ở trạng thái "Đã hủy", phòng ban không thao tác được nữa"; đọc lại đơn 25 thấy dòng phòng 1 vẫn <code>quoteVersion: 0</code>, không ghi gì.</span></div>
+</div>
+
+<div class="issue high">
+  <h3><span class="id">QA-32</span> <span class="tag t-med">TB</span> Bỏ qua đơn (pass) nhận lý do rỗng dù spec bắt buộc</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/departments/:deptId/pass</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Thiếu hẳn key <code>reason</code> thì bị 400, nhưng <code>{"reason": ""}</code> và <code>{"reason": "   "}</code> đều trả <code>201</code>. Đặc tả F2 ghi rõ bỏ qua phải kèm lý do — sale nhìn vào sẽ thấy một phòng bỏ qua không lời giải thích.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -b ma.jar -X POST $B/orders/22/departments/1/pass -d '{"reason":""}'     # 201
+curl -s -b ma.jar -X POST $B/orders/22/departments/1/pass -d '{"reason":"   "}'  # 201</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Thêm <code>@IsNotEmpty</code> + transform trim vào DTO của pass. Front-end đã chặn ở dialog nên không cần sửa gì phía UI.</span></div>
+  <div class="field"><b>Đã xử lý + re-verify sống 25/08/2026</b><span>Cùng commit <code>d7e1898</code> (PR #8, đã deploy): lý do bỏ qua bị trim và bắt buộc không rỗng. Re-verify trên đơn 27 (DOM mới, <code>distributed</code>): <code>{"reason":""}</code> và <code>{"reason":"   "}</code> đều trả <code>400</code> "Bỏ qua đơn phải kèm lý do"; <code>{"reason":"QA25 lý do hợp lệ"}</code> trả <code>201</code>, phòng chuyển <code>passed</code>. Đơn 27 đã hủy để dọn dữ liệu.</span></div>
+</div>
+
+<div class="issue high">
+  <h3><span class="id">QA-33</span> <span class="tag t-med">TB</span> Lọc theo khoảng ngày tính theo ngày UTC, lệch 7 giờ với giờ Việt Nam</h3>
+  <div class="field"><b>Endpoint</b><span><code>GET /orders</code> · <code>/orders/export</code> · <code>/orders/kanban</code> — <code>fromDate</code>, <code>toDate</code>, <code>dateField</code></span></div>
+  <div class="field"><b>Hiện tại</b><span><code>orders-query.service.ts:71-72</code> dựng mốc bằng <code>new Date(f.fromDate)</code> và <code>new Date(`${f.toDate}T23:59:59.999Z`)</code>, tức nửa đêm <b>UTC</b>. Một đơn tạo hoặc chốt trong khoảng 00:00–07:00 giờ Việt Nam bị tính vào ngày hôm trước. <code>drill.service.ts:69-70</code> và <code>dateRange()</code> của dashboard nên được kiểm cùng lúc.</span></div>
+  <div class="field"><b>Tái hiện 23/09/2026</b><span><code>DOM-20260921-001</code> tạo lúc <code>2026-09-20T18:32Z</code> (01:32 ngày 21/09 giờ VN, và mã đơn cũng mang ngày 21) không có trong <code>fromDate=2026-09-21&amp;toDate=2026-09-21</code>. <code>DOM-20260915-007</code> chốt lúc <code>2026-09-20T18:41Z</code> (01:41 ngày 21/09 VN) lại hiện trong <code>dateField=closed&amp;fromDate=2026-09-20&amp;toDate=2026-09-20</code>.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Hiểu ngày lọc theo <code>Asia/Ho_Chi_Minh</code> — cùng múi giờ sinh mã đơn: <code>gte = ${fromDate}T00:00:00+07:00</code>, <code>lt = (toDate + 1 ngày)T00:00:00+07:00</code>. Front-end không vá được vì <code>toDate</code> luôn bị ghép hậu tố <code>Z</code>.</span></div>
+</div>
+
+<div class="issue high">
+  <h3><span class="id">QA-34</span> <span class="tag t-med">TB</span> Nghiệm thu hoàn thành được mà không cần ảnh hay biên bản</h3>
+  <div class="field"><b>Endpoint</b><span><code>PATCH /orders/:id/milestones/:milestoneId</code> với <code>status: done</code> ở mốc cuối (Nghiệm thu / POD)</span></div>
+  <div class="field"><b>Hiện tại</b><span>Backend chỉ chặn <em>bỏ qua</em> mốc cuối. Hoàn thành thì chỉ cần một ghi chú tùy ý, không cần file nào gắn vào mốc, trong khi file theo mốc đã có sẵn (<code>POST /orders/:id/files?milestoneId=</code>). Ví dụ <code>CON-20260923-001</code> nghiệm thu với ghi chú "ok rồi", không file nào; đơn đã báo khách "hoàn thành" (<code>ORDER_COMPLETED</code>).</span></div>
+  <div class="field"><b>Front-end 23/09/2026</b><span>Tab Tiến độ khoá nút "Hoàn thành mốc" ở mốc cuối cho tới khi có ít nhất một file gắn vào mốc đó. Đây chỉ là chặn giao diện — gọi API thẳng vẫn qua.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Trong <code>milestones.service</code>, khi <code>dto.status = done</code> và là mốc có <code>seq</code> lớn nhất, đếm <code>order_files</code> theo <code>milestoneId</code>; bằng 0 thì trả <code>400</code> "Nghiệm thu cần ảnh hoặc biên bản nghiệm thu".</span></div>
+</div>
+
+<div class="issue high">
+  <h3><span class="id">QA-35</span> <span class="tag t-med">TB</span> Đơn đã nghiệm thu xong vẫn huỷ được</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/cancel</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Huỷ được từ mọi trạng thái trừ <code>cancelled</code>, gồm cả <code>closed</code> đã có <code>completedAt</code> — hàng đã giao, khách đã được báo hoàn thành, doanh thu đã tính. Huỷ lúc này rút một đơn có thật khỏi doanh thu.</span></div>
+  <div class="field"><b>Front-end 23/09/2026</b><span>Ẩn nút Huỷ đơn khi <code>completedAt</code> khác null. Chỉ là chặn giao diện.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Từ chối huỷ khi <code>completedAt</code> đã có (<code>409</code>), hoặc chốt với nghiệp vụ một luồng riêng (hoàn/huỷ sau giao) có lý do và quyền riêng.</span></div>
+</div>
+
+
+<div class="issue high">
+  <h3><span class="id">QA-02</span> <span class="tag t-high">Cao</span> Tỉnh/thành là text tự do và dữ liệu đã sai chuẩn</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders</code> · <code>GET /orders/:id/reference-prices</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Không có danh mục tỉnh/thành, back-end lưu nguyên chuỗi nhận được, còn đơn giá tham khảo so khớp bằng so sánh chuỗi tuyệt đối. Trong DB hiện đã tồn tại song song <code>Hà Nội</code> với <code>HN</code>, <code>Hải Phòng</code> với <code>HP</code> do các script test khác nhau ghi vào.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Hai đơn cùng tuyến nhưng khác cách viết sẽ không khớp nhau, làm hỏng chính tính năng đơn giá tham khảo (quyết định số 6 của đặc tả).</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>select distinct origin_province from orders
+union select distinct destination_province from orders;
+--  Hải Phòng | Hà Nội | HP | HN</code></pre>
+  <div class="field"><b>Front-end đã làm</b><span>Khóa cứng danh sách 34 tỉnh/thành trong <code>src/constants/provinces.ts</code>, form tạo đơn chỉ cho chọn từ danh sách này.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Back-end nên là nguồn sự thật: thêm <code>GET /provinces</code> và validate <code>originProvince</code>/<code>destinationProvince</code> theo danh mục đó. Kèm một lần chuẩn hóa dữ liệu cũ.</span></div>
+</div>
+
+<div class="issue high">
+  <h3><span class="id">QA-03</span> <span class="tag t-high">Cao</span> <code>api-docs.md</code> lệch thực tế ở 5 điểm</h3>
+  <div class="field"><b>Hệ quả</b><span>Ai code theo tài liệu sẽ viết sai. Front-end đã phải sửa lại sau khi đối chiếu spec sống.</span></div>
+  <table>
+    <tr><th>Tài liệu nói</th><th>API thật</th></tr>
+    <tr><td><code>POST /auth/login</code> trả <code>{ user, mustChangePassword }</code></td><td>Trả thẳng object user, cờ là field trên object đó</td></tr>
+    <tr><td>Có <code>GET /orders/:id/departments</code></td><td>Không có. Báo giá và tình trạng tiếp nhận nằm trong <code>GET /orders/:id</code> → <code>departments[]</code></td></tr>
+    <tr><td><code>close</code> nhận <code>{ departmentId, note }</code></td><td><code>CloseOrderDto</code> chỉ có <code>{ note? }</code></td></tr>
+    <tr><td>Tiền serialize thành <code>string</code> (§16)</td><td>Trả JSON <code>number</code>, ví dụ <code>"finalAmount": 28000000</code></td></tr>
+    <tr><td>JWT payload chứa <code>roles</code>, <code>departmentId</code></td><td>Payload chỉ <code>{ sub, iat, exp }</code> — điểm này <b>tốt hơn</b> tài liệu, đổi vai trò có hiệu lực ngay</td></tr>
+  </table>
+  <div class="field"><b>Đề xuất</b><span>Cập nhật <code>api-docs.md</code> theo spec sống, hoặc ghi rõ tài liệu chỉ là thiết kế ban đầu và <code>/api/docs-json</code> mới là hợp đồng.</span></div>
+</div>
+
+<div class="issue high">
+  <h3><span class="id">QA-04</span> <span class="tag t-high">Cao</span> Mật khẩu admin trong README không còn dùng được</h3>
+  <div class="field"><b>Hiện tại</b><span>README ghi <code>admin@beetransportation.vn</code> / <code>BeeOps@2026</code>, đăng nhập trả <code>401</code>. Mật khẩu thật nằm trong <code>scripts/qa/qa_lib.py</code> (<code>ADMIN_PW</code>).</span></div>
+  <div class="field"><b>Hệ quả</b><span>Người mới vào dự án không đăng nhập được bằng tài liệu chính thức.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Đồng bộ README với seed thật, hoặc để seed reset mật khẩu admin mỗi lần chạy.</span></div>
+</div>
+
+
+<div class="issue high">
+  <h3><span class="id">QA-21</span> <span class="tag t-high">Cao</span> Nhãn kỳ của biểu đồ doanh thu lệch một ngày (tháng 8 hiện thành 07/2026)</h3>
+  <div class="field"><b>Vị trí</b><span><code>src/modules/dashboard/revenue.service.ts:125</code> · <code>GET /dashboard/revenue</code></span></div>
+  <div class="field"><b>Hiện tại</b><span><code>date_trunc(unit, closed_at)</code> chạy theo timezone phiên <code>Asia/Ho_Chi_Minh</code> nên mốc đầu kỳ là 00:00 giờ Việt Nam, tức 17:00 UTC của ngày hôm trước. Sau đó <code>period.toISOString().slice(0, 10)</code> cắt phần ngày theo UTC, nên mốc lùi đúng một ngày: kỳ tháng 8/2026 trả về <code>"2026-07-31"</code>, kỳ ngày 22/08 trả về <code>"2026-08-21"</code>.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Nếu hiển thị nguyên văn thì báo cáo ghi doanh thu tháng 8 dưới nhãn <b>07/2026</b> — sai lệch nghiêm trọng về mặt đọc số. Với <code>groupBy=quarter</code> thì lệch sang cả quý trước. Front-end đang phải cộng bù một ngày ở <code>src/pages/dashboard/revenuePeriod.ts</code>; chỗ đó có ghi chú để xóa ngay khi back-end sửa.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -b lead.txt "localhost:8087/api/dashboard/revenue?groupBy=month" | jq -c '.data'
+# [{"period":"2026-07-31","orderCount":5,"revenue":140900000,...}]
+# 5 đơn này đều được chốt ngày 22/08/2026</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Định dạng mốc theo giờ địa phương thay vì cắt chuỗi UTC, ví dụ trả thẳng từ SQL: <code>to_char(date_trunc(unit, o.closed_at), 'YYYY-MM-DD')</code>. Cùng lỗi này nằm ở cả chuỗi so sánh cùng kỳ (dòng 140).</span></div>
+</div>
+
+<h2>4. Mức trung bình — hợp đồng API không nhất quán</h2>
+
+<div class="issue med">
+  <h3><span class="id">QA-27</span> <span class="tag t-med">TB</span> Mọi bộ lọc của <code>GET /activity</code> bị chính ValidationPipe chặn — Swagger vẫn quảng cáo chúng</h3>
+  <div class="field"><b>Môi trường</b><span>Tái hiện trên cả bản triển khai lẫn local, mã nguồn <code>ef1bc64</code>.</span></div>
+  <div class="field"><b>Hiện tại</b><span>Màn <code>/admin/activity</code> chọn “Đối tượng = orders” → <code>GET /api/activity?page=1&amp;limit=20&amp;entity=orders</code> trả <code>400 "property entity should not exist"</code>. <code>entityId</code>, <code>actorId</code>, <code>orderId</code> cùng cảnh ngộ. Không lọc thì chạy bình thường.</span></div>
+  <div class="field"><b>Nguyên nhân</b><span>Controller nhận cả object query theo <code>PaginationDto</code> (<code>@Query() page: PaginationDto</code>) rồi lấy thêm từng tham số bằng <code>@Query('entity')</code>. <code>ValidationPipe</code> toàn cục chạy <code>whitelist + forbidNonWhitelisted</code> nên mọi thuộc tính không có trong <code>PaginationDto</code> đều bị chặn. Bốn bộ lọc chỉ được khai bằng <code>@ApiQuery</code> — thuần tài liệu, không phải validation — nên <code>/api/docs-json</code> liệt kê đủ bốn tham số mà thực tế gọi vào là 400. Đây là loại lỗi mà spec không cứu được: tài liệu và validation đến từ hai nguồn khác nhau.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Bộ lọc của nhật ký hệ thống hỏng hoàn toàn — đúng phần acceptance của <code>03-org-admin.md</code>. Front-end gửi đúng những gì spec ghi.</span></div>
+  <div class="field"><b>Đã sửa</b><span>Khai <code>ActivityQueryDto extends PaginationDto</code> với <code>entity</code>/<code>entityId</code> (<code>@IsString</code>) và <code>actorId</code>/<code>orderId</code> (<code>@Type(() =&gt; Number) @IsInt</code>), controller nhận đúng một DTO. Tài liệu và validation nay cùng một nguồn. <b>Đối chiếu:</b> không controller nào khác dùng <code>PaginationDto</code> trần kèm <code>@Query('x')</code> — lỗi này chỉ có ở <code>/activity</code>.</span></div>
+  <div class="field"><b>Kiểm chứng</b><span></span></div>
+<pre><code>entity=orders            -> 200, total=66
+entity=users             -> 200, total=65
+entityId=46              -> 200, total=2
+actorId=6                -> 200, total=91
+orderId=46               -> 200, total=2
+entity=orders&amp;actorId=6  -> 200, total=64
+bogus=1                  -> 400 property bogus should not exist   (whitelist vẫn nguyên)
+actorId=abc              -> 400 actorId must be an integer number  (ép kiểu vẫn nguyên)</code></pre>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-28</span> <span class="tag t-med">TB</span> <code>FRONTEND_ORIGIN</code> nhận danh sách ở một nửa mã nguồn, đòi một URI ở nửa còn lại</h3>
+  <div class="field"><b>Hiện tại</b><span>Back-end <b>không khởi động nổi</b> với chính <code>.env.example</code> của nó: <code>Config validation error: "FRONTEND_ORIGIN" must be a valid uri</code>.</span></div>
+  <div class="field"><b>Nguyên nhân</b><span>QA-13 đã cho <code>main.ts</code> tách <code>FRONTEND_ORIGIN</code> theo dấu phẩy để CORS nhận nhiều origin, và <code>.env.example</code> ghi <code>http://localhost:5173,http://localhost:3000</code> — nhưng <code>env.validation.ts</code> vẫn là <code>Joi.string().uri()</code>. Kèm theo đó, <code>MailService.orderLink</code> ghép nguyên chuỗi vào URL, nên khi có nhiều origin thì link trong e-mail thành <code>http://a,http://b/orders/12</code>; <code>notification.cron</code> dùng thẳng biến này làm link dự phòng cũng vậy.</span></div>
+  <div class="field"><b>Đã sửa</b><span>Joi validate <b>từng phần tử</b> của danh sách; <code>MailService</code> có <code>baseUrl</code> lấy origin đầu tiên và cả <code>orderLink</code> lẫn cron đi qua đó. Back-end khởi động được với <code>.env.example</code> nguyên trạng.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-05</span> <span class="tag t-med">TB</span> Ba kiểu hợp đồng danh sách khác nhau</h3>
+  <div class="field"><b>Hiện tại</b><span><code>GET /departments</code>, <code>/users</code>, <code>/services</code>, <code>/queue</code>, <code>/orders/unrouted</code>, <code>/customers</code> trả <b>mảng trần</b>; <code>GET /orders</code> và <code>/activity</code> trả <b>{ items, total, page, limit }</b>.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Mỗi service ở front-end phải nhớ riêng từng dạng; sai một chỗ là màn hình trắng.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Thống nhất: hoặc mọi danh sách đều bọc phân trang, hoặc ghi rõ trong Swagger endpoint nào có phân trang. Ưu tiên bọc hết cho đồng nhất.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-06</span> <span class="tag t-med">TB</span> <code>GET /activity</code> đặt tên trường thời gian là <code>at</code></h3>
+  <div class="field"><b>Hiện tại</b><span>Mọi nơi khác dùng <code>createdAt</code>, riêng activity dùng <code>at</code>. Swagger cũng không khai response schema cho endpoint này.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Front-end render cột thời gian ra rỗng cho tới khi chạy thật mới phát hiện.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Đổi thành <code>createdAt</code> cho đồng nhất, và khai <code>@ApiResponse</code> cho endpoint này.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-07</span> <span class="tag t-med">TB</span> <code>page</code>/<code>limit</code> không được khai trong Swagger, và <code>/dashboard/drill</code> từ chối <code>limit</code></h3>
+  <div class="field"><b>Hiện tại</b><span><code>GET /orders</code> nhận <code>?page=&amp;limit=</code> chạy đúng nhưng không có trong danh sách parameters của spec. Ngược lại <code>GET /dashboard/drill?limit=3</code> trả <code>400 property limit should not exist</code>.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Không biết endpoint nào phân trang nếu không thử từng cái.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Khai đủ tham số phân trang trong DTO filter, và cho drill-down nhận <code>limit</code> vì biểu đồ bấm vào có thể ra rất nhiều dòng.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-08</span> <span class="tag t-med">TB</span> Upload file không có <code>requestBody</code> trong Swagger</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/files</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Spec để trống <code>requestBody</code>. Đọc code mới biết dùng <code>mp.file()</code> nên lấy phần file đầu tiên bất kể tên field, và mỗi request chỉ nhận một file.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Khai <code>@ApiConsumes('multipart/form-data')</code> + schema, ghi rõ giới hạn một file mỗi request và whitelist MIME.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-09</span> <span class="tag t-med">TB</span> Tạo đơn cho khách mới phải gọi hai lần, không có transaction</h3>
+  <div class="field"><b>Hiện tại</b><span><code>CreateOrderDto</code> chỉ nhận <code>customerId</code>, không có trường tên/điện thoại/email. Khách mới buộc phải <code>POST /customers</code> trước rồi mới <code>POST /orders</code>.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Nếu bước tạo đơn lỗi, hồ sơ khách vừa tạo bị mồ côi trong danh bạ. Không có cách dọn từ phía front-end.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Cho <code>CreateOrderDto</code> nhận thêm một nhánh <code>customer: { companyName, contactName?, phone?, email? }</code> để back-end tạo khách và đơn trong cùng transaction, giữ nguyên <code>customerId</code> cho khách cũ.</span></div>
+</div>
+
+<div class="issue high">
+  <h3><span class="id">QA-14</span> <span class="tag t-high">Cao</span> Cùng một mốc tiến độ, hai endpoint trả dữ liệu khác nhau</h3>
+  <div class="field"><b>Endpoint</b><span><code>GET /orders/:id</code> so với <code>GET /orders/:id/milestones</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Mốc <code>id 19</code> của đơn 40: endpoint chuyên trách trả <code>doneByName: "QA Trưởng A"</code>, còn <code>departments</code>/<code>milestones</code> nhúng trong chi tiết đơn trả <code>doneByName: null</code>. Các trường còn lại (<code>status</code>, <code>note</code>, <code>doneAt</code>) giống nhau.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Màn tiến độ hiển thị thiếu người thực hiện nếu đọc từ chi tiết đơn. Front-end đang phải gọi thêm một request để lấy đúng dữ liệu.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -b cookie.txt localhost:8087/api/orders/40/milestones | jq '.data[0].doneByName'
+# "QA Trưởng A"
+curl -s -b cookie.txt localhost:8087/api/orders/40        | jq '.data.milestones[0].doneByName'
+# null</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Dùng chung một mapper cho <code>OrderMilestoneDto</code> ở cả hai chỗ, join người thực hiện trong query của chi tiết đơn.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-15</span> <span class="tag t-med">TB</span> Thiếu response schema cho Kanban và Export</h3>
+  <div class="field"><b>Endpoint</b><span><code>GET /orders/kanban</code>, <code>GET /orders/export</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Swagger không khai kiểu trả về. Thử thật mới biết Kanban trả object gom theo trạng thái (<code>{ "distributed": [...], "quoting": [...] }</code>) và chỉ chứa trạng thái nào đang có đơn; export trả file xlsx.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Khai <code>@ApiResponse</code> cho cả hai, ghi rõ Kanban bỏ qua trạng thái rỗng và giới hạn 50 đơn mỗi cột.</span></div>
+</div>
+
+
+<div class="issue med">
+  <h3><span class="id">QA-16</span> <span class="tag t-med">TB</span> Không có cách đọc lại các phiên bản báo giá cũ</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/departments/:deptId/quote</code> · <code>GET /orders/:id</code></span></div>
+  <div class="field"><b>Hiện tại</b><span><code>order_departments</code> chỉ giữ một dòng cho mỗi phòng: gửi lại báo giá làm <code>quoteVersion</code> tăng lên nhưng ghi đè con số cũ. Không endpoint nào trả lịch sử các phiên bản.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Đặc tả F3 yêu cầu "gửi phiên bản 2 thì phiên bản 1 vẫn xem được ở dạng chỉ đọc". Front-end hiện chỉ hiển thị được số phiên bản, không hiển thị được nội dung phiên bản trước. Sale cũng không truy được đơn đã tăng giá bao nhiêu qua mỗi vòng, trong khi đây là dữ liệu để đàm phán.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code># gửi 2 lần cho cùng một phòng
+curl -s -b mb.txt -X POST localhost:8087/api/orders/39/departments/4/quote \
+  -H 'Content-Type: application/json' -d '{"amount":26500000}'
+curl -s -b mb.txt -X POST localhost:8087/api/orders/39/departments/4/quote \
+  -H 'Content-Type: application/json' -d '{"amount":24900000}'
+curl -s -b mb.txt localhost:8087/api/orders/39 | jq '.data.departments[] | select(.departmentId==4)'
+# {"quoteVersion":4,"amount":24900000, ...}  — không còn dấu vết của 26.500.000</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Thêm bảng <code>order_department_quotes</code> ghi mỗi lần gửi (phòng, phiên bản, số tiền, phạm vi, thời hạn, người gửi, thời điểm) và <code>GET /orders/:id/departments/:deptId/quotes</code> trả lịch sử, áp cùng luật báo giá kín.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-17</span> <span class="tag t-med">TB</span> Gửi lại báo giá xóa mất các trường tùy chọn không gửi kèm</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/departments/:deptId/quote</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Endpoint ghi đè toàn bộ dòng. Gửi lại chỉ với <code>amount</code> thì <code>scopeNote</code>, <code>leadTime</code>, <code>validUntil</code> đang có bị đặt về <code>null</code> mà không cảnh báo gì. Swagger không nói đây là thay thế toàn phần.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Mất dữ liệu âm thầm với bất kỳ client nào coi đây là cập nhật một phần. Front-end đã phải nạp sẵn toàn bộ giá trị cũ vào form và gửi lại đủ để tránh.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -b mb.txt -X POST localhost:8087/api/orders/39/departments/4/quote \
+  -H 'Content-Type: application/json' \
+  -d '{"amount":26500000,"scopeNote":"Bao gồm bốc xếp 2 đầu","leadTime":"3 ngày"}'
+curl -s -b mb.txt -X POST localhost:8087/api/orders/39/departments/4/quote \
+  -H 'Content-Type: application/json' -d '{"amount":26500000}'
+curl -s -b mb.txt localhost:8087/api/orders/39 \
+  | jq '.data.departments[] | select(.departmentId==4) | {scopeNote, leadTime}'
+# {"scopeNote":null,"leadTime":null}</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Hoặc ghi rõ trong Swagger rằng đây là thay thế toàn phần, hoặc chỉ ghi đè những trường thực sự có trong body (giữ giá trị cũ khi trường vắng mặt).</span></div>
+</div>
+
+
+<div class="issue med">
+  <h3><span class="id">QA-19</span> <span class="tag t-med">TB</span> Một cột <code>close_note</code> gánh ba nghiệp vụ khác nhau</h3>
+  <div class="field"><b>Vị trí</b><span><code>orders.close_note</code> · <code>POST /orders/:id/close</code>, <code>/reject</code>, <code>/cancel</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Ghi chú khi chốt, ghi chú khi khách từ chối và lý do hủy đều được ghi vào cùng cột <code>close_note</code> và trả ra cùng trường <code>closeNote</code>.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Front-end phải đoán ý nghĩa của trường theo <code>status</code> để đặt nhãn, nếu không thì đơn đã hủy hiển thị lý do hủy dưới nhãn "Ghi chú chốt đơn". Báo cáo cũng không tách được ba loại ghi chú này.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -b sale.txt -X POST localhost:8087/api/orders/43/reject \
+  -H 'Content-Type: application/json' \
+  -d '{"rejectReason":"Khách chọn đối thủ","note":"Khách đã ký với nhà thầu khác"}'
+curl -s -b sale.txt localhost:8087/api/orders/43 | jq '{status, rejectReason, closeNote}'
+# {"status":"rejected","rejectReason":"Khách chọn đối thủ","closeNote":"Khách đã ký với nhà thầu khác"}</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Tách thành <code>close_note</code>, <code>reject_note</code>, <code>cancel_reason</code>. Nếu chưa muốn đổi schema thì ít nhất trả thêm trường ảo cho biết ghi chú thuộc nghiệp vụ nào.</span></div>
+</div>
+
+
+<div class="issue med">
+  <h3><span class="id">QA-23</span> <span class="tag t-med">TB</span> <code>GET /notifications</code> không phân trang</h3>
+  <div class="field"><b>Endpoint</b><span><code>GET /notifications?isRead=</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Chỉ có tham số <code>isRead</code>, không có <code>page</code>/<code>limit</code> và không có giới hạn số dòng. Tài khoản <code>qa.ma</code> mới dùng một ngày đã trả về 57 bản ghi trong một response.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Sau vài tháng vận hành, mỗi lần mở hộp thư (và mỗi lần mở dropdown chuông) sẽ tải toàn bộ lịch sử thông báo. Front-end đang phải tự cắt 10 dòng đầu cho dropdown, còn hộp thư thì vẫn nhận hết.</span></div>
+  <div class="field"><b>Tái hiện</b><span></span></div>
+<pre><code>curl -s -b mgr.txt localhost:8087/api/notifications | jq '.data | length'
+# 57  — không có tham số nào để giới hạn</code></pre>
+  <div class="field"><b>Đề xuất</b><span>Nhận <code>page</code>/<code>limit</code> và trả <code>{items,total,page,limit}</code> như <code>/orders</code> và <code>/activity</code>, mặc định 20 dòng.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-29</span> <span class="tag t-med">TB</span> <code>sortBy</code> tùy ý trên <code>GET /orders</code> trả <code>500</code></h3>
+  <div class="field"><b>Hiện tại</b><span><code>GET /orders?sortBy=nonsense</code> hoặc <code>sortBy=customer</code> trả <code>500 Lỗi hệ thống</code>. <code>sortBy=code</code>, <code>createdAt</code>, <code>id</code> thì chạy.</span></div>
+  <div class="field"><b>Nguyên nhân</b><span><code>PaginationDto.sortBy</code> chỉ là <code>@IsString</code>, còn <code>orders-query.service.ts</code> đưa thẳng giá trị vào <code>orderBy: { [f.sortBy ?? 'createdAt']: f.sortOrder }</code>. Tên cột không tồn tại làm Prisma ném lỗi. Đầu vào của người dùng đi thẳng vào tên cột, và lỗi 500 là câu trả lời sai cho một tham số nhập sai.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Giao diện hiện chưa gửi <code>sortBy</code> nên chưa lộ ra; nhưng <code>08-order-tracking.md</code> có sắp xếp trong bộ lọc, nên sẽ chạm ngay khi làm tới.</span></div>
+  <div class="field"><b>Đã sửa</b><span><code>ORDER_SORT_FIELDS</code> + <code>@IsIn</code> trên <code>OrderFilterDto</code> — giá trị sai trả 400 kèm danh sách hợp lệ. <code>finalAmount</code> <b>cố ý</b> không nằm trong danh sách: sắp xếp theo cột đó để lộ thứ tự giá trị cho đúng những người mà API đang trả <code>null</code>.</span></div>
+</div>
+
+<div class="issue med">
+  <h3><span class="id">QA-30</span> <span class="tag t-med">TB</span> <code>sortBy</code>/<code>sortOrder</code> được khai ở mọi danh sách nhưng chỉ <code>/orders</code> dùng tới</h3>
+  <div class="field"><b>Hiện tại</b><span><code>PaginationDto</code> là cha của mọi DTO lọc, nên Swagger khai <code>sortBy</code> và <code>sortOrder</code> cho <b>mọi</b> endpoint danh sách. Thực tế chỉ <code>/orders</code> đọc tới chúng.</span></div>
+  <div class="field"><b>Bằng chứng</b><span><code>/users</code>, <code>/customers</code>, <code>/activity</code>, <code>/notifications</code> với <code>sortOrder=asc</code> và <code>sortOrder=desc</code> trả về <b>cùng một thứ tự</b> — tham số bị bỏ qua trong im lặng.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Client tin theo spec sẽ nhận thứ tự khác thứ tự mình xin, mà không có lỗi nào báo. Cùng họ với QA-27: tài liệu hứa nhiều hơn runtime làm.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Chọn một trong hai — hoặc thực thi sắp xếp trên các danh sách đó (kèm whitelist cột như QA-29), hoặc bỏ hai tham số khỏi những DTO không dùng để spec nói đúng sự thật. Chưa sửa: đây là quyết định phạm vi của back-end, không phải lỗi cài đặt.</span></div>
+</div>
+
+<h2>5. Mức thấp — schema và cấu hình</h2>
+
+<div class="issue low">
+  <h3><span class="id">QA-10</span> <span class="tag t-low">Thấp</span> <code>lpad(no, 3, '0')</code> cắt cụt số thứ tự từ 1000 trở lên</h3>
+  <div class="field"><b>Vị trí</b><span><code>order_code()</code> trong <code>schema.sql</code></span></div>
+  <div class="field"><b>Hiện tại</b><span><code>lpad</code> cắt chuỗi dài hơn tham số length: <code>lpad('1000',3,'0')</code> ra <code>'100'</code>. Đơn thứ 1000 trong ngày của một dịch vụ sẽ sinh mã trùng đơn thứ 100 và vi phạm unique <code>orders.code</code>.</span></div>
+  <div class="field"><b>Đề xuất</b><span><code>CASE WHEN p_no &lt; 1000 THEN lpad(p_no::text,3,'0') ELSE p_no::text END</code></span></div>
+</div>
+
+<div class="issue low">
+  <h3><span class="id">QA-11</span> <span class="tag t-low">Thấp</span> <code>orders.updated_at</code> không bao giờ được cập nhật</h3>
+  <div class="field"><b>Hiện tại</b><span>Cột chỉ có <code>DEFAULT now()</code>, không trigger. Các lệnh <code>$executeRaw</code> cũng đi vòng qua Prisma nên không có cơ chế nào chạm tới.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Thêm trigger <code>BEFORE UPDATE</code>, hoặc bỏ hẳn cột và dùng <code>activity_log</code>.</span></div>
+</div>
+
+<div class="issue low">
+  <h3><span class="id">QA-12</span> <span class="tag t-low">Thấp</span> Thiếu index cho truy vấn theo người xử lý</h3>
+  <div class="field"><b>Hiện tại</b><span><code>order_departments</code> chỉ có index <code>(department_id, state)</code>. "Việc của tôi" của nhân viên và thống kê khối lượng theo nhân viên đều lọc theo <code>assignee_id</code>.</span></div>
+  <div class="field"><b>Đề xuất</b><span><code>CREATE INDEX ON order_departments (assignee_id);</code></span></div>
+</div>
+
+<div class="issue low">
+  <h3><span class="id">QA-13</span> <span class="tag t-low">Thấp</span> <code>FRONTEND_ORIGIN</code> chỉ cho phép cổng 3000</h3>
+  <div class="field"><b>Hiện tại</b><span><code>.env</code> back-end đặt <code>FRONTEND_ORIGIN=http://localhost:3000</code>, trong khi dev server của admin chạy ở <code>:5173</code>. Response header trả <code>access-control-allow-origin: http://localhost:3000</code>.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Hiện chưa ảnh hưởng vì front-end proxy <code>/api</code> nên cùng origin. Nhưng gọi thẳng cross-origin sẽ bị chặn.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Thống nhất cổng dev, hoặc cho <code>FRONTEND_ORIGIN</code> nhận danh sách origin.</span></div>
+</div>
+
+
+<div class="issue low">
+  <h3><span class="id">QA-18</span> <span class="tag t-low">Thấp</span> Thông báo 409 gọi tên cùng một trạng thái ở cả hai vế</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /orders/:id/select-quote</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Chọn lại phòng thắng khi đơn đã ở <code>awaiting_customer</code> trả về: <code>Không thể chuyển đơn từ "Chờ khách xác nhận" sang "Chờ khách xác nhận"</code>. Câu này không cho người dùng biết phải làm gì.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Front-end hiển thị nguyên văn thông báo của back-end nên người dùng đọc được một câu vô nghĩa. Hiện đã ẩn nút chọn ở trạng thái này để tránh, nhưng thông báo vẫn nên sửa.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Trả câu nói rõ hành động kế tiếp, ví dụ: "Đơn đã chọn phòng phụ trách. Muốn đổi phòng, hãy gửi yêu cầu điều chỉnh giá để mở lại vòng chọn."</span></div>
+</div>
+
+
+<div class="issue low">
+  <h3><span class="id">QA-20</span> <span class="tag t-low">Thấp</span> <code>finalAmount</code> trong nhật ký là chuỗi, trong DTO là số</h3>
+  <div class="field"><b>Endpoint</b><span><code>GET /orders/:id/timeline</code> so với <code>GET /orders/:id</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Bản ghi <code>close</code> trong nhật ký có <code>detail.finalAmount: "28900000"</code> (chuỗi), trong khi <code>OrderDetailDto.finalAmount</code> là số <code>28900000</code>.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Nhỏ, vì <code>detail</code> chỉ để hiển thị. Nhưng nếu sau này báo cáo đọc số tiền từ nhật ký thì phải nhớ ép kiểu, dễ quên.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Ghi <code>Number(finalAmount)</code> khi log, cho khớp DTO.</span></div>
+</div>
+
+
+<div class="issue low">
+  <h3><span class="id">QA-22</span> <span class="tag t-low">Thấp</span> Sale gọi được lát cắt doanh thu theo phòng ban và theo sale</h3>
+  <div class="field"><b>Endpoint</b><span><code>GET /dashboard/revenue/by?dimension=department</code> (và <code>=sale</code>)</span></div>
+  <div class="field"><b>Hiện tại</b><span>Các endpoint tổng hợp (<code>/response-time</code>, <code>/competition</code>, <code>/workload</code>) trả <code>403</code> đúng như mong đợi với vai trò sale, nhưng <code>/revenue/by</code> thì nhận mọi <code>dimension</code>. Dữ liệu vẫn nằm trong phạm vi của sale (chỉ gồm đơn của chính họ, tổng đúng bằng doanh thu cá nhân), nên không phải lộ dữ liệu.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Đặc tả F6 nói lát cắt theo phòng ban và theo sale chỉ dành cho cấp công ty. Front-end đang tự ẩn hai lát cắt này khi tier thấp hơn công ty, nhưng ranh giới nên nằm ở back-end.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Từ chối <code>dimension=department|sale</code> khi <code>reportScope</code> không phải công ty, hoặc xác nhận đây là hành vi cố ý để front-end bỏ phần ẩn.</span></div>
+</div>
+
+
+<div class="issue low">
+  <h3><span class="id">QA-24</span> <span class="tag t-low">Thấp</span> Trường nullable bị khai thành <code>type: object</code> trong Swagger</h3>
+  <div class="field"><b>Endpoint</b><span><code>NotificationDto.body</code>, <code>NotificationDto.orderId</code>, <code>ReferencePriceDto.originProvince</code>, <code>ResponseTimeDto.hoursToClaim</code> và nhiều DTO khác</span></div>
+  <div class="field"><b>Hiện tại</b><span>Các trường có thể null được khai là <code>{"type":"object","nullable":true}</code> thay vì kiểu thật (<code>string</code>, <code>number</code>). Thực tế API trả đúng kiểu nguyên thủy.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Sinh client tự động từ spec sẽ ra kiểu <code>object</code> vô nghĩa; front-end phải tự khai lại kiểu trong adapter. Ngoài ra <code>NotificationDto.type</code> khai là <code>string</code> trơn nên client không biết được tập 14 giá trị của <code>NotifType</code>.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Dùng <code>@ApiProperty({ type: String, nullable: true })</code> cho các trường nullable và <code>enum: NotifType</code> cho <code>type</code>.</span></div>
+</div>
+
+
+<div class="issue low">
+  <h3><span class="id">QA-25</span> <span class="tag t-low">Thấp</span> <code>POST /customers</code> nhận trùng tên công ty không cảnh báo</h3>
+  <div class="field"><b>Endpoint</b><span><code>POST /customers</code></span></div>
+  <div class="field"><b>Hiện tại</b><span>Gọi hai lần với cùng <code>companyName</code> tạo ra hai hồ sơ khách khác id. Không có ràng buộc duy nhất, cũng không có cảnh báo trùng.</span></div>
+  <div class="field"><b>Hệ quả</b><span>Sale gõ tay đúng tên một khách đã có (thay vì chọn từ gợi ý) sẽ tách lịch sử đơn của khách đó thành hai hồ sơ, làm sai lát cắt doanh thu theo khách. Trong lúc kiểm thử đã tạo ra đúng tình huống này (khách id 2 và id 3 cùng tên). Front-end nay tự tra tên trước khi tạo để tránh, nhưng ràng buộc nên nằm ở back-end.</span></div>
+  <div class="field"><b>Đề xuất</b><span>Hoặc thêm unique index theo tên đã chuẩn hóa, hoặc trả về hồ sơ sẵn có khi tên trùng khớp chính xác (upsert), hoặc trả <code>409</code> kèm id của hồ sơ trùng để client tự quyết.</span></div>
+</div>
+
+<h2>6. Đã kiểm tra và đúng</h2>
+<p>Ghi lại để back-end biết những phần nào đã được QA xác nhận, khỏi phải làm lại.</p>
+<table>
+  <tr><th>Nội dung</th><th>Cách kiểm tra</th><th>Kết quả</th></tr>
+  <tr>
+    <td>Báo giá kín — phòng thua không thấy giá phòng thắng</td>
+    <td>Mở đơn #1 (phòng B thắng) bằng 4 tài khoản khác nhau</td>
+    <td><span class="tag t-ok">Đúng</span> <code>qa.ma</code> (thua) thấy <code>finalAmount: null</code> và chỉ báo giá của chính phòng mình; <code>qa.mb</code> (thắng) thấy giá của mình; sale sở hữu đơn thấy cả hai</td>
+  </tr>
+  <tr>
+    <td>Badge thông báo khớp hộp thư và về 0 sau khi đọc hết</td>
+    <td><code>qa.ma</code>: badge 57 → mở 2 thông báo → 55 → "Đánh dấu đã đọc hết"</td>
+    <td><span class="tag t-ok">Đúng</span> <code>unread-count</code>, danh sách lọc <code>isRead=false</code> và badge luôn khớp nhau; sau khi đọc hết badge biến mất và tab "Chưa đọc" rỗng</td>
+  </tr>
+  <tr>
+    <td>Thông báo dẫn thẳng tới tab liên quan của đơn</td>
+    <td>Bấm thông báo "đã chọn phòng khác" của đơn <code>DOM-20260822-039</code></td>
+    <td><span class="tag t-ok">Đúng</span> mở <code>/orders/42?tab=departments</code> — đúng tab báo giá, không phải tab tổng quan</td>
+  </tr>
+  <tr>
+    <td>Việc của tôi chia đúng theo vai trò</td>
+    <td>Mở <code>/my-tasks</code> bằng trưởng phòng A và leader</td>
+    <td><span class="tag t-ok">Đúng</span> trưởng phòng thấy nhóm "Đơn mới chờ tiếp nhận" (32 đơn), leader không có việc nào và nhận trạng thái rỗng</td>
+  </tr>
+  <tr>
+    <td>Tùy chọn email lưu và đọc lại đúng</td>
+    <td>Tắt email "Cập nhật tiến độ" và "Trễ SLA" rồi tải lại trang</td>
+    <td><span class="tag t-ok">Đúng</span> <code>emailOff</code> lưu đúng hai giá trị, hai công tắc vẫn tắt sau khi tải lại; đã khôi phục về rỗng sau kiểm tra</td>
+  </tr>
+  <tr>
+    <td>Ba tầng báo cáo tự phân giải theo người gọi</td>
+    <td>Mở <code>/dashboard</code> bằng leader, trưởng phòng B và sale</td>
+    <td><span class="tag t-ok">Đúng</span> <code>scopeLevel</code> lần lượt là company / department / personal; trưởng phòng B thấy 96.900.000 (chỉ phòng mình) trong khi leader thấy 140.900.000 (toàn công ty)</td>
+  </tr>
+  <tr>
+    <td>Endpoint tổng hợp chặn đúng vai trò</td>
+    <td>Sale gọi <code>/dashboard/response-time</code>, <code>/competition</code>, <code>/workload</code></td>
+    <td><span class="tag t-ok">Đúng</span> cả ba trả <code>403 Bạn không có quyền xem báo cáo tổng hợp</code></td>
+  </tr>
+  <tr>
+    <td>Drill-down khớp đúng con số trên biểu đồ</td>
+    <td>Nhấn cột doanh thu tháng 8 và dòng "QA Phòng A" trong lát cắt</td>
+    <td><span class="tag t-ok">Đúng</span> lần lượt ra 5 đơn cộng đúng 140.900.000 và 2 đơn cộng đúng 44.000.000</td>
+  </tr>
+  <tr>
+    <td>Cờ <code>canViewCompanyReport</code> mở tầng công ty cho tài khoản không phải lãnh đạo</td>
+    <td>Bật cờ cho <code>qa.acct</code> (vai trò staff) rồi tải lại</td>
+    <td><span class="tag t-ok">Đúng</span> tier chuyển sang company, menu Báo cáo xuất hiện, drill-down trả 3 đơn và workload trả 3 phòng — không rỗng. Cờ đã được tắt lại sau khi kiểm tra</td>
+  </tr>
+  <tr>
+    <td>Chốt đơn khóa doanh thu và sinh bộ mốc</td>
+    <td>Chốt <code>DOM-20260822-039</code> theo báo giá phòng B</td>
+    <td><span class="tag t-ok">Đúng</span> <code>finalAmount</code> thành 28.900.000, sinh đủ 5 mốc DOM, phòng thua vẫn thấy <code>finalAmount: null</code> và chỉ báo giá của mình</td>
+  </tr>
+  <tr>
+    <td>Máy trạng thái chặn đúng chỗ</td>
+    <td>Chốt đơn đang ở <code>awaiting_selection</code>; từ chối đơn ở <code>new</code></td>
+    <td><span class="tag t-ok">Đúng</span> <code>409</code> cho chốt sai trạng thái; bảng chuyển trạng thái trong <code>order-state.helper.ts</code> khớp với thực tế chạy — front-end đã ánh xạ theo bảng này để không hiện nút chết</td>
+  </tr>
+  <tr>
+    <td>Sửa đơn sau chốt bắt buộc có ghi chú</td>
+    <td>Sửa địa chỉ giao của đơn đã chốt</td>
+    <td><span class="tag t-ok">Đúng</span> thiếu <code>changeNote</code> thì <code>400</code>; có ghi chú thì lưu và hiện trên dòng thời gian, doanh thu không đổi</td>
+  </tr>
+  <tr>
+    <td>Phiếu xác nhận PDF đi qua request có xác thực</td>
+    <td>Mở phiếu của đơn <code>DOM-20260822-039</code></td>
+    <td><span class="tag t-ok">Đúng</span> PDF một trang, có mã đơn, tuyến, phòng phụ trách, giá trị đơn, ghi chú chốt và tên người in</td>
+  </tr>
+  <tr>
+    <td>Báo giá kín giữa hai phòng cùng cạnh tranh một đơn</td>
+    <td>Đơn <code>DOM-20260822-039</code>: phòng A báo 31.500.000, phòng B báo 28.900.000</td>
+    <td><span class="tag t-ok">Đúng</span> mỗi trưởng phòng chỉ thấy đúng một dòng của phòng mình, kể cả sau khi phòng mình thắng; sale sở hữu đơn thấy cả hai</td>
+  </tr>
+  <tr>
+    <td>Chọn báo giá thắng chưa ghi nhận doanh thu</td>
+    <td>Chọn phòng B trên đơn <code>DOM-20260822-039</code></td>
+    <td><span class="tag t-ok">Đúng</span> đơn sang <code>awaiting_customer</code>, <code>departmentName</code> thành phòng B, <code>finalAmount</code> vẫn <code>null</code> cho tới khi chốt đơn</td>
+  </tr>
+  <tr>
+    <td>Yêu cầu điều chỉnh mở lại vòng giá và hoàn tác việc chọn</td>
+    <td><code>POST /orders/42/request-revision</code> khi đơn đang ở <code>awaiting_customer</code></td>
+    <td><span class="tag t-ok">Đúng</span> đơn quay về <code>quoting</code>, phòng thắng/thua trở lại <code>quoted</code>, lý do lưu thành trao đổi <code>revision_request</code> đúng phòng được chọn</td>
+  </tr>
+  <tr>
+    <td>Chặn báo giá sai ngữ cảnh</td>
+    <td>Phòng đã bỏ qua gửi báo giá; phòng thắng gửi lại sau vòng chọn</td>
+    <td><span class="tag t-ok">Đúng</span> lần lượt <code>400 Phòng bạn đã bỏ qua đơn này</code> và <code>400 Đơn đã qua vòng chọn báo giá</code></td>
+  </tr>
+  <tr>
+    <td>Phạm vi dữ liệu trả 404 chứ không 403</td>
+    <td><code>qa.sale2</code> mở đơn của <code>qa.sale1</code></td>
+    <td><span class="tag t-ok">Đúng</span> <code>404 Không tìm thấy đơn hàng</code></td>
+  </tr>
+  <tr>
+    <td>Cờ <code>canViewCompanyReport</code> mở cả phạm vi đọc đơn</td>
+    <td>Đọc <code>scope.service.spec.ts</code> và <code>is-company-wide.ts</code></td>
+    <td><span class="tag t-ok">Đúng</span> <code>orderWhere</code> có xét cờ nên drill-down không ra rỗng</td>
+  </tr>
+  <tr>
+    <td>Phân quyền quản trị</td>
+    <td><code>qa.lead</code> gọi <code>/departments</code>, <code>/users</code>, <code>/activity</code></td>
+    <td><span class="tag t-ok">Đúng</span> đều trả <code>403</code></td>
+  </tr>
+  <tr>
+    <td>Bỏ qua đơn bắt buộc kèm lý do, sale nhìn thấy</td>
+    <td><code>qa.ma</code> bỏ qua <code>DOM-20260822-037</code></td>
+    <td><span class="tag t-ok">Đúng</span> lý do lưu đúng và hiện trong <code>departments[]</code> phía sale</td>
+  </tr>
+  <tr>
+    <td>Mốc tiến độ đi tuần tự, sinh đúng bộ mốc của dịch vụ khi chốt</td>
+    <td>Chốt đơn 40 rồi cập nhật mốc đầu tiên</td>
+    <td><span class="tag t-ok">Đúng</span> sinh đủ 5 mốc của DOM, hoàn thành mốc 1 thì mốc 2 mở ra, ghi nhận đúng người và thời điểm</td>
+  </tr>
+  <tr>
+    <td>Vòng đời <code>closed</code> → <code>in_progress</code></td>
+    <td>Chốt đơn rồi hoàn thành mốc đầu tiên</td>
+    <td><span class="tag t-ok">Đúng</span> đơn tự chuyển sang "Đang thực hiện", xác nhận <code>closed</code> là trạng thái có thật</td>
+  </tr>
+  <tr>
+    <td>Tải file lên đơn và phục vụ tải về có kiểm tra quyền</td>
+    <td>Tải một file PNG lên đơn 40</td>
+    <td><span class="tag t-ok">Đúng</span> file lưu và hiện đúng metadata; tải về đi qua endpoint có xác thực, không phục vụ tĩnh</td>
+  </tr>
+  <tr>
+    <td>Sinh mã đơn và phân phối tự động</td>
+    <td>Tạo 2 đơn DOM liên tiếp</td>
+    <td><span class="tag t-ok">Đúng</span> <code>DOM-20260822-037</code>, <code>-038</code> liên tiếp, mỗi đơn được đẩy tới đúng 2 phòng phụ trách DOM</td>
+  </tr>
+</table>
+
+<h2>7. Câu hỏi cần back-end hoặc chủ sản phẩm trả lời — đã trả lời</h2>
+<p>Cả hai câu đã được xử lý trong cùng đợt sửa: đơn giá tham khảo nay khớp thêm số kiện,
+thể tích bao ngoài và loại container (kích thước so bằng thể tích), còn
+<code>QueueItemDto</code> đã có tên khách và tuyến — màn hàng đợi hiển thị hai cột này.</p>
+<table>
+  <tr><th>#</th><th>Câu hỏi</th><th>Vì sao cần</th></tr>
+  <tr>
+    <td>Q-09</td>
+    <td>Đơn giá tham khảo hiện chỉ khớp theo khối lượng và thể tích, trong khi quyết định số 6 của đặc tả liệt kê cả 4 trường số (thêm số kiện/container và kích thước). Có bổ sung không?</td>
+    <td>Ảnh hưởng câu chữ mô tả tiêu chí khớp giá hiển thị cho phòng báo giá</td>
+  </tr>
+  <tr>
+    <td>Q-14</td>
+    <td><code>QueueItemDto</code> không có khách hàng và tuyến vận chuyển. Có bổ sung được không?</td>
+    <td>Nhân viên phải mở từng đơn mới biết tuyến để quyết định nhận hay bỏ qua</td>
+  </tr>
+</table>
+
+<h2>8. Môi trường kiểm thử</h2>
+<table>
+  <tr><th>Tài khoản</th><th>Vai trò</th><th>Mật khẩu</th></tr>
+  <tr><td><code>admin@beetransportation.vn</code></td><td>admin</td><td>xem <code>scripts/qa/qa_lib.py</code> → <code>ADMIN_PW</code></td></tr>
+  <tr><td><code>qa.sale1@bee.vn</code>, <code>qa.sale2@bee.vn</code></td><td>sale</td><td rowspan="4"><code>BeeOps@2026!x</code></td></tr>
+  <tr><td><code>qa.ma@bee.vn</code>, <code>qa.mb@bee.vn</code></td><td>manager</td></tr>
+  <tr><td><code>qa.sta@bee.vn</code>, <code>qa.stb@bee.vn</code>, <code>qa.acct@bee.vn</code></td><td>staff</td></tr>
+  <tr><td><code>qa.lead@bee.vn</code></td><td>leader</td></tr>
+</table>
+
+<div class="note">
+  <b>Dữ liệu do đợt QA này tạo ra trong DB dev:</b> khách hàng <code>Công ty TNHH Kiểm Thử FE</code> (id 2)
+  và các đơn <code>DOM-20260822-037</code> (phòng A bỏ qua, phòng B đã báo giá tới phiên bản v4),
+  <code>DOM-20260822-038</code> (đã chốt, đang thực hiện), <code>CON-20260822-001</code> (tạo nhầm dịch vụ
+  chưa có phòng phụ trách — hiện nằm ở hàng đợi chưa định tuyến, tiện làm mẫu cho màn admin) và
+  <code>DOM-20260822-039</code> (hai phòng báo giá, phòng B thắng, <b>đã chốt</b> 28.900.000 và đã sửa sau chốt một lần) và
+  <code>DOM-20260822-040</code> (<b>khách từ chối</b>, lý do "Khách chọn đối thủ"). Đơn <code>DOM-20260822-037</code> cũng đã bị
+  đánh dấu khách từ chối, còn <code>CON-20260822-001</code> đã được hủy nên không còn nằm ở hàng đợi chưa định tuyến.
+  Mọi thay đổi khác đều đã được hoàn nguyên: SLA dịch vụ, ma trận định tuyến, bộ mốc, cờ
+  <code>canViewCompanyReport</code> của <code>qa.acct</code> và tùy chọn email của <code>qa.ma</code>.
+  Riêng thông báo của <code>qa.ma</code> đã bị đánh dấu đọc hết khi kiểm thử F8 — trạng thái này không khôi phục được.
+  Vòng verify lại ngày 23/08 (sau khi back-end sửa) tạo thêm <code>DOM-20260823-004</code>
+(thử quy đổi tên tỉnh) và <code>DOM-20260823-005</code> (thử nhánh <code>newCustomer</code>,
+khách <i>Công ty Kiểm Thử Hợp Đồng Mới</i>), báo giá và chốt <code>DOM-20260823-001</code> ở
+24.900.000 để dựng lịch sử báo giá, chọn phòng cho <code>DOM-20260823-002</code>, và gán
+<code>DOM-20260823-001</code> cho QA NV A. Trước đó, vòng rà soát 23/08 tạo thêm ba đơn <code>DOM-20260823-001..003</code> và hai hồ sơ khách kiểm thử
+  (<code>Công ty TNHH Kiểm Thử FE</code> bị trùng thành id 2 và id 3 — chính là bằng chứng của QA-25 —
+  cùng <code>Công ty Kiểm Thử Regression</code> id 4).
+</div>
+
+<footer>
+  Biên bản do front-end lập trong quá trình ghép API. Front-end đã hoàn tất F1 đến F8.
+Back-end đã xử lý toàn bộ 25 phát hiện ngày 23/08/2026; front-end đã chuyển sang hợp đồng mới
+và chạy lại từng mục. Tài liệu này giữ lại làm hồ sơ đối chiếu.
+</footer>
+
+</div>
+</body>
+</html>

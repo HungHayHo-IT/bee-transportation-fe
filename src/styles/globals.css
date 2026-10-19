@@ -1,0 +1,18 @@
+:root {
+  --beeops-scrollbar-track: transparent;
+  --beeops-scrollbar-thumb: rgba(110, 101, 82, 0.32);
+}
+
+*::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--beeops-scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--beeops-scrollbar-thumb);
+  border-radius: 15px;
+}
